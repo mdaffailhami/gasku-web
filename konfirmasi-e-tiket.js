@@ -7,6 +7,7 @@ const konten = document.getElementById('konten');
 const tombolKonfirmasi = document.getElementById('tombol-konfirmasi');
 const loading = document.getElementById('loading');
 
+let nik = params['nik'];
 let key = params['key'];
 
 function getLastMonday() {
@@ -31,9 +32,12 @@ async function konfirmasiETiket() {
   const tahun = lastMonday.getFullYear();
   const eTiketID = `${hariKe}-${bulan}-${tahun}`;
 
-  const url = `https://gasku-kmipn-default-rtdb.asia-southeast1.firebasedatabase.app/users/${key}/riwayatETiket/${eTiketID}.json`;
+  const url = `https://gasku-kmipn-default-rtdb.asia-southeast1.firebasedatabase.app/users/${nik}/riwayatETiket/${eTiketID}.json`;
 
   try {
+    if (key != CryptoJS.SHA1(`${nik}(${eTiketID})`).toString()) {
+      throw 'Wrong key';
+    }
     await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -47,19 +51,20 @@ async function konfirmasiETiket() {
       }),
     });
 
-    // Stop loading
-    loading.classList.add('d-none');
     alert('Konfirmasi Pengambilan Gas Berhasil');
   } catch (error) {
     console.log('Error:', error);
   }
+
+  // Stop loading
+  loading.classList.add('d-none');
 }
 
 async function initial() {
   modal.toggle();
   tombolKonfirmasi.addEventListener('click', () => konfirmasiETiket());
 
-  const url = `https://gasku-kmipn-default-rtdb.asia-southeast1.firebasedatabase.app/users/${key}.json`;
+  const url = `https://gasku-kmipn-default-rtdb.asia-southeast1.firebasedatabase.app/users/${nik}.json`;
 
   try {
     const response = await fetch(url);
